@@ -3,33 +3,43 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Stopwatch</title>
+<title>Kawaii Focus Timer</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
   html, body {
-    width: 100%; height: 100%;
+    width: 100%;
+    height: 100%;
     background: #F4DFEB;
     overflow: hidden;
     font-family: 'Fredoka', sans-serif;
   }
 
-  /* ── Video background (untouched, just referenced) ── */
   #bg-video {
     position: fixed;
     inset: 0;
-    width: 100%; height: 100%;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     z-index: 0;
+    filter: none;
+    pointer-events: none;
+    background: #F4DFEB;
   }
 
-  /* ── App layout ── */
   #app {
     position: relative;
     z-index: 2;
-    width: 100%; height: 100vh;
+    width: 100%;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -38,7 +48,6 @@
     padding: 1.5rem;
   }
 
-  /* ── Timer numbers — big, chunky, center of attention ── */
   #timer {
     font-family: 'Fredoka', sans-serif;
     font-weight: 700;
@@ -51,7 +60,6 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* ── Buttons row ── */
   .controls {
     display: flex;
     gap: clamp(0.8rem, 2.5vw, 1.4rem);
@@ -88,10 +96,10 @@
   }
 </style>
 </head>
+
 <body>
 
-  <!-- Video sits in the same folder as this file, referenced only — never modified -->
-  <video id="bg-video" autoplay loop muted playsinline preload="auto">
+  <video id="bg-video" autoplay muted loop playsinline preload="auto">
     <source src="kawaii-timer-video.mp4" type="video/mp4" />
   </video>
 
@@ -121,15 +129,18 @@
   </div>
 
   <script>
-    let elapsed  = 0;      // seconds
+    let elapsed = 0;
     let interval = null;
 
-    const timerEl  = document.getElementById('timer');
-    const playBtn  = document.getElementById('play-btn');
+    const timerEl = document.getElementById('timer');
+    const playBtn = document.getElementById('play-btn');
     const pauseBtn = document.getElementById('pause-btn');
-    const stopBtn  = document.getElementById('stop-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const bgVideo = document.getElementById('bg-video');
 
-    function pad(n) { return String(n).padStart(2, '0'); }
+    function pad(n) {
+      return String(n).padStart(2, '0');
+    }
 
     function render() {
       const m = Math.floor(elapsed / 60);
@@ -157,13 +168,31 @@
       render();
     }
 
+    function playBackgroundVideo() {
+      if (!bgVideo) return;
+
+      bgVideo.muted = true;
+      bgVideo.playsInline = true;
+      bgVideo.controls = false;
+
+      const playPromise = bgVideo.play();
+
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          document.addEventListener('click', () => bgVideo.play(), { once: true });
+          document.addEventListener('touchstart', () => bgVideo.play(), { once: true });
+        });
+      }
+    }
+
     playBtn.addEventListener('click', start);
     pauseBtn.addEventListener('click', pause);
     stopBtn.addEventListener('click', stop);
 
-    // Auto-start on load
     render();
     start();
+
+    window.addEventListener('load', playBackgroundVideo);
   </script>
 
 </body>
